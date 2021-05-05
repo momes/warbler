@@ -316,7 +316,8 @@ def homepage():
 
     if g.user:
         # getting the user_ids of of every one the current user is following
-        following_users_ids = [user.id for user in g.user.following]
+        following_users_ids = [user.id for user in g.user.following]  # result into a list  []
+        following_users_ids.append(g.user.id)     # add g.user.id to that list.
         # TODO add user's msgs
         messages = (Message
                     .query
