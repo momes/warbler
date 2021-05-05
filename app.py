@@ -20,6 +20,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
+# print(app.config['SECRET_KEY'])
+
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
@@ -208,7 +210,7 @@ def profile():
     # IMPLEMENT THIS
     if not g.user:
         flash("Access unauthorized.", "danger")
-        return redirect("/")
+        return redirect("/")   
     
     form = UserEditForm(obj=g.user)
     
@@ -219,7 +221,7 @@ def profile():
 
         if not User.authenticate(username=user.username, password=password):
             flash("Access unauthorized.", "danger")
-            return redirect("/")
+            return render_template("users/edit.html", form=form)  #  render temp to users/user.id/edit
 
         
         user.username = form.username.data
@@ -313,8 +315,12 @@ def homepage():
     """
 
     if g.user:
+        # getting the user_ids of of every one the current user is following
+        following_users_ids = [user.id for user in g.user.following]
+        # TODO add user's msgs
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following_users_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
