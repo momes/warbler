@@ -214,7 +214,7 @@ def users_likes(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('users/likes.html', user=user)
 
-@app.route('/likes/<int:msg_id', methods=["POST"])
+@app.route('/likes/<int:msg_id>', methods=["POST"])
 def change_likes(msg_id):
     """Add a liked message to likes or remove a liked message from likes"""
     form = LikeForm()
@@ -223,13 +223,25 @@ def change_likes(msg_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
     
-    chosen_message = Likes.query.get_or_404(msg_id=msg_id)
+    choosen_message = Message.query.get_or_404(msg_id)
+
 
     if form.validate_on_submit():
         likes_msg_ids = [msg.id for msg in g.user.likes]
-        #if msg_id not in likes_msg_ids:
-            
 
+        if msg_id not in likes_msg_ids:
+            new_like_msg = Likes(user_id=g.user.id,message_id= msg_id)
+            db.session.add(new_like_msg)
+        else:
+            
+            liked_msg = Likes.query.filter(Likes.message_id == msg_id, Likes.user_id == g.user.id).delete()
+            # criteria = {'user_id': g.user.id, 'message_id': msg_id} 
+            # Likes.query.filter_by(**criteria).delete()
+            # db.session.delete(liked_msg)
+
+            
+    db.session.commit() 
+    return redirect("/")
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
