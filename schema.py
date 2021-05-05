@@ -45,3 +45,14 @@
 # Foreign-key constraints:
 #     "messages_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 
+#LIKES
+#                  Table "public.likes"
+#    Column   |  Type   | Collation | Nullable | Default 
+# ------------+---------+-----------+----------+---------
+#  user_id    | integer |           | not null | 
+#  message_id | integer |           | not null | 
+# Indexes:
+#     "likes_pkey" PRIMARY KEY, btree (user_id, message_id)
+# Foreign-key constraints:
+#     "likes_message_id_fkey" FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE
+#     "likes_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

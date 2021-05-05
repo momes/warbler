@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField
+from wtforms import StringField, PasswordField, TextAreaField, HiddenField
 from wtforms.validators import DataRequired, Email, Length
 
 
@@ -34,3 +34,7 @@ class UserEditForm(FlaskForm):
     header_url = StringField('(Optional) Image URL')
     bio = TextAreaField('(Optional) Bio)')
     password = PasswordField('Password', validators=[Length(min=6)])
+
+class LikeForm(FlaskForm):
+    """Like form"""
+    

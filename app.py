@@ -4,8 +4,9 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
-from models import db, connect_db, User, Message
+from forms import UserAddForm, LoginForm, MessageForm, UserEditForm, LikeForm
+from models import db, connect_db, User, Message, Likes, Follows
+#QUESTION import likes & follows
 
 CURR_USER_KEY = "curr_user"
 
@@ -202,6 +203,33 @@ def stop_following(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
+@app.route('/users/<int:user_id>/likes')
+def users_likes(user_id):
+    """Show list of liked messages of this user."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    return render_template('users/likes.html', user=user)
+
+@app.route('/likes/<int:msg_id', methods=["POST"])
+def change_likes(msg_id):
+    """Add a liked message to likes or remove a liked message from likes"""
+    form = LikeForm()
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    chosen_message = Likes.query.get_or_404(msg_id=msg_id)
+
+    if form.validate_on_submit():
+        likes_msg_ids = [msg.id for msg in g.user.likes]
+        #if msg_id not in likes_msg_ids:
+            
+
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
@@ -325,8 +353,10 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+        
+        form = LikeForm()
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, form=form)
 
     else:
         return render_template('home-anon.html')
