@@ -19,7 +19,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 # print(app.config['SECRET_KEY'])
 
@@ -111,8 +111,8 @@ def login():
 
     return render_template('users/login.html', form=form)
 
-
-@app.route('/logout')
+#should be a post so it is not repeatable and because it changes the session on the server
+@app.route('/logout', methods=['POST'])
 def logout():
     """Handle logout of user."""
 
@@ -144,10 +144,10 @@ def list_users():
 @app.route('/users/<int:user_id>')
 def users_show(user_id):
     """Show user profile."""
-
+    form = LikeForm()
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/show.html', user=user)
+    return render_template('users/show.html', user=user, form=form)
 
 
 @app.route('/users/<int:user_id>/following')
@@ -166,9 +166,9 @@ def show_following(user_id):
 def users_followers(user_id):
     """Show list of followers of this user."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    # if user_id != g.user.id:
+    #     flash("Access unauthorized.", "danger")
+    #     return redirect("/")
 
     user = User.query.get_or_404(user_id)
     return render_template('users/followers.html', user=user)
@@ -214,34 +214,6 @@ def users_likes(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('users/likes.html', user=user)
 
-@app.route('/likes/<int:msg_id>', methods=["POST"])
-def change_likes(msg_id):
-    """Add a liked message to likes or remove a liked message from likes"""
-    form = LikeForm()
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-    
-    choosen_message = Message.query.get_or_404(msg_id)
-
-
-    if form.validate_on_submit():
-        likes_msg_ids = [msg.id for msg in g.user.likes]
-
-        if msg_id not in likes_msg_ids:
-            new_like_msg = Likes(user_id=g.user.id,message_id= msg_id)
-            db.session.add(new_like_msg)
-        else:
-            
-            liked_msg = Likes.query.filter(Likes.message_id == msg_id, Likes.user_id == g.user.id).delete()
-            # criteria = {'user_id': g.user.id, 'message_id': msg_id} 
-            # Likes.query.filter_by(**criteria).delete()
-            # db.session.delete(liked_msg)
-
-            
-    db.session.commit() 
-    return redirect("/")
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
@@ -280,7 +252,7 @@ def profile():
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
     """Delete user."""
-
+    #TODO csrf :(
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
@@ -341,6 +313,62 @@ def messages_destroy(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
+##############################################################################
+# Like and Unlike messages
+
+@app.route('/like/<int:msg_id>', methods=["POST"])
+def like_message(msg_id):
+    """Add a liked message to likes or remove a liked message from likes"""
+    form = LikeForm()
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    chosen_message = Message.query.get_or_404(msg_id)
+
+    if chosen_message.user_id == g.user.id:
+        flash("You can't like your own message.", "danger")
+        return redirect("/")
+
+    if form.validate_on_submit():
+        likes_msg_ids = [msg.id for msg in g.user.likes]
+
+        if msg_id not in likes_msg_ids:
+            g.user.likes.append(chosen_msg)
+
+
+            # new_like_msg = Likes(user_id=g.user.id,message_id= msg_id)
+            # db.session.add(new_like_msg)
+            db.session.commit()
+
+    return redirect("/")
+
+@app.route('/unlike/<int:msg_id>', methods=["POST"])
+def unlike_message(msg_id):
+    form = LikeForm()
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    chosen_message = Message.query.get_or_404(msg_id)
+
+    if chosen_message.user_id == g.user.id:
+        flash("You can't like your own message.", "danger")
+        return redirect("/")
+
+    if form.validate_on_submit():
+        #uses relationship!
+        g.user.likes.remove(chosen_msg)
+
+            #liked_msg = Likes.query.filter(Likes.message_id == msg_id, Likes.user_id == g.user.id).delete()
+            # criteria = {'user_id': g.user.id, 'message_id': msg_id} 
+            # Likes.query.filter_by(**criteria).delete()
+            # db.session.delete(liked_msg)
+
+    db.session.commit() 
+    return redirect("/")
 
 ##############################################################################
 # Homepage and error pages

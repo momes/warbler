@@ -18,6 +18,23 @@
               {{ message.timestamp.strftime('%d %B %Y') }}
             </span>
             <p>{{ message.text }}</p>
+
+            {% if message not in g.user.likes and message.user_id != g.user.id %}
+              <form method="POST" action="/like/{{ message.id }}">
+                {{ form.hidden_tag() }}
+
+                <button type="submit" class="far fa-star" style="z-index:10; position: relative; padding: 0; border: none; background: none;">
+                </button>
+              </form>
+            {% elif message in g.user.likes and message.user_id != g.user.id %}
+
+              <form method="POST" action="/unlike/{{ message.id }}">
+                {{ form.hidden_tag() }}
+                <button type="submit" class="fas fa-star" style="z-index:10; position: relative; padding: 0; border: none; background: none;">
+                </button>
+              </form>
+            {% endif %}
+
           </div>
         </li>
 
