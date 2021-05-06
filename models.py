@@ -71,8 +71,8 @@ class User(db.Model):
         db.Text,
         nullable=False,
     )
-
-    messages = db.relationship('Message', order_by='Message.timestamp.desc()')
+# added cascade on delete all
+    messages = db.relationship('Message',cascade="all,delete", order_by='Message.timestamp.desc()')
 
     followers = db.relationship(
         "User",

@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm, UserEditForm, LikeForm
+from forms import UserAddForm, LoginForm, MessageForm, UserEditForm, HiddenForm
 from models import db, connect_db, User, Message, Likes, Follows
 #QUESTION import likes & follows
 
@@ -31,6 +31,16 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
+
+@app.before_request
+def add_hidden_form_to_g():
+    """If we're logged in, add hidden form to Flask global."""
+
+    if CURR_USER_KEY in session:
+        g.hidden_form = HiddenForm()
+
+    else:
+        g.hidden_form = None
 
 @app.before_request
 def add_user_to_g():
@@ -115,9 +125,10 @@ def login():
 @app.route('/logout', methods=['POST'])
 def logout():
     """Handle logout of user."""
-
-    do_logout()
-    flash("Successfully Logged Out", "success")
+    # form=HiddenForm()   
+    if g.hidden_form.validate_on_submit():
+        do_logout()
+        flash("Successfully Logged Out", "success")
     return redirect('/')
 
 
@@ -143,8 +154,8 @@ def list_users():
 
 @app.route('/users/<int:user_id>')
 def users_show(user_id):
-    """Show user profile."""
-    form = LikeForm()
+    """Show user profile.""" 
+    form = HiddenForm()  
     user = User.query.get_or_404(user_id)
 
     return render_template('users/show.html', user=user, form=form)
@@ -253,14 +264,15 @@ def profile():
 def delete_user():
     """Delete user."""
     #TODO csrf :(
+
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    do_logout()
-
-    db.session.delete(g.user)
-    db.session.commit()
+    if g.hidden_form.validate_on_submit():
+        do_logout()
+        db.session.delete(g.user)
+        db.session.commit()
 
     return redirect("/signup")
 
@@ -315,11 +327,11 @@ def messages_destroy(message_id):
 
 ##############################################################################
 # Like and Unlike messages
-
+# TODO change redirect to user profile
 @app.route('/like/<int:msg_id>', methods=["POST"])
 def like_message(msg_id):
     """Add a liked message to likes or remove a liked message from likes"""
-    form = LikeForm()
+    form = HiddenForm()
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -335,7 +347,7 @@ def like_message(msg_id):
         likes_msg_ids = [msg.id for msg in g.user.likes]
 
         if msg_id not in likes_msg_ids:
-            g.user.likes.append(chosen_msg)
+            g.user.likes.append(chosen_message)
 
 
             # new_like_msg = Likes(user_id=g.user.id,message_id= msg_id)
@@ -346,7 +358,7 @@ def like_message(msg_id):
 
 @app.route('/unlike/<int:msg_id>', methods=["POST"])
 def unlike_message(msg_id):
-    form = LikeForm()
+    form = HiddenForm()
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -360,7 +372,7 @@ def unlike_message(msg_id):
 
     if form.validate_on_submit():
         #uses relationship!
-        g.user.likes.remove(chosen_msg)
+        g.user.likes.remove(chosen_message)
 
             #liked_msg = Likes.query.filter(Likes.message_id == msg_id, Likes.user_id == g.user.id).delete()
             # criteria = {'user_id': g.user.id, 'message_id': msg_id} 
@@ -394,7 +406,7 @@ def homepage():
                     .limit(100)
                     .all())
         
-        form = LikeForm()
+        form = HiddenForm()
 
         return render_template('home.html', messages=messages, form=form)
 

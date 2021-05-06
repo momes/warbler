@@ -35,6 +35,6 @@ class UserEditForm(FlaskForm):
     bio = TextAreaField('(Optional) Bio)')
     password = PasswordField('Password', validators=[Length(min=6)])
 
-class LikeForm(FlaskForm):
-    """Like form"""
+class HiddenForm(FlaskForm):
+    """Hidden form for liking, unliking, deleting user / logout"""
     
