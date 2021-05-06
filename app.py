@@ -221,9 +221,11 @@ def users_likes(user_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
+    
+    liked_message_ids = set([like.id for like in g.user.likes])
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/likes.html', user=user)
+    return render_template('users/likes.html', user=user, liked_message_ids=liked_message_ids)
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
@@ -263,7 +265,6 @@ def profile():
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
     """Delete user."""
-    #TODO csrf :(
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -328,8 +329,8 @@ def messages_destroy(message_id):
 ##############################################################################
 # Like and Unlike messages
 # TODO change redirect to user profile
-@app.route('/like/<int:msg_id>', methods=["POST"])
-def like_message(msg_id):
+@app.route('/like/<int:msg_id>/<int:user_page_id>/<location>', methods=["POST"])
+def like_message(msg_id,user_page_id,location):
     """Add a liked message to likes or remove a liked message from likes"""
     form = HiddenForm()
 
@@ -353,11 +354,14 @@ def like_message(msg_id):
             # new_like_msg = Likes(user_id=g.user.id,message_id= msg_id)
             # db.session.add(new_like_msg)
             db.session.commit()
-
+    if location == "user-page":
+        return redirect(f"/users/{user_page_id}")
+    elif location == "user-likes-page":
+        return redirect(f"/users/{user_page_id}/likes")
     return redirect("/")
 
-@app.route('/unlike/<int:msg_id>', methods=["POST"])
-def unlike_message(msg_id):
+@app.route('/unlike/<int:msg_id>/<int:user_page_id>/<location>', methods=["POST"])
+def unlike_message(msg_id,user_page_id,location):
     form = HiddenForm()
 
     if not g.user:
@@ -380,6 +384,11 @@ def unlike_message(msg_id):
             # db.session.delete(liked_msg)
 
     db.session.commit() 
+
+    if location == "user-page":
+        return redirect(f"/users/{user_page_id}")
+    elif location == "user-likes-page":
+        return redirect(f"/users/{user_page_id}/likes")
     return redirect("/")
 
 ##############################################################################
@@ -397,18 +406,19 @@ def homepage():
     if g.user:
         # getting the user_ids of of every one the current user is following
         following_users_ids = [user.id for user in g.user.following]  # result into a list  []
-        following_users_ids.append(g.user.id)     # add g.user.id to that list.
-        # TODO add user's msgs
+        following_users_ids.append(g.user.id)     
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following_users_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+
+        liked_message_ids = set([like.id for like in g.user.likes])
         
         form = HiddenForm()
 
-        return render_template('home.html', messages=messages, form=form)
+        return render_template('home.html', messages=messages, form=form, liked_message_ids=liked_message_ids)
 
     else:
         return render_template('home-anon.html')

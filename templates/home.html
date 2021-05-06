@@ -44,6 +44,7 @@
 
   <div class="col-lg-6 col-md-8 col-sm-12">
     <ul class="list-group" id="messages">
+
       {% for msg in messages %}
       <li class="list-group-item">
         <a href="/messages/{{ msg.id }}" class="message-link" />
@@ -54,22 +55,25 @@
           <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
           <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
           <p>{{ msg.text }}</p>
+          {% if msg.user_id != g.user.id %}
             <!--O(n+m) ?! 
             right now it is O( n * m)-->
-            {% if msg not in g.user.likes and msg.user_id != g.user.id %}
-              <form method="POST" action="/like/{{ msg.id }}">
+            <!--send in a set of g.user.likes-->
+            {% if msg.id not in liked_message_ids%}
+              <form method="POST" action="/like/{{ msg.id }}/0/home">
                 {{ form.hidden_tag() }}
 
                 <button type="submit" class="far fa-star" style="z-index:10; position: relative; padding: 0; border: none; background: none;">
                 </button>
               </form>
-            {% elif msg in g.user.likes and msg.user_id != g.user.id %}
+            {% else %}
 
-              <form method="POST" action="/unlike/{{ msg.id }}">
+              <form method="POST" action="/unlike/{{ msg.id }}/0/home">
                 {{ form.hidden_tag() }}
                 <button type="submit" class="fas fa-star" style="z-index:10; position: relative; padding: 0; border: none; background: none;">
                 </button>
               </form>
+            {% endif %}
             {% endif %}
         </div>
 
