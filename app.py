@@ -5,8 +5,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, UserEditForm, HiddenForm
-from models import db, connect_db, User, Message, Likes, Follows
-#QUESTION import likes & follows
+from models import db, connect_db, User, Message, Like, Follows
+# QUESTION import likes & follows
 
 CURR_USER_KEY = "curr_user"
 
@@ -41,6 +41,7 @@ def add_hidden_form_to_g():
 
     else:
         g.hidden_form = None
+
 
 @app.before_request
 def add_user_to_g():
@@ -121,11 +122,12 @@ def login():
 
     return render_template('users/login.html', form=form)
 
-#should be a post so it is not repeatable and because it changes the session on the server
+# should be a post so it is not repeatable and because it changes the session on the server
+
+
 @app.route('/logout', methods=['POST'])
 def logout():
     """Handle logout of user."""
-    # form=HiddenForm()   
     if g.hidden_form.validate_on_submit():
         do_logout()
         flash("Successfully Logged Out", "success")
@@ -154,11 +156,10 @@ def list_users():
 
 @app.route('/users/<int:user_id>')
 def users_show(user_id):
-    """Show user profile.""" 
-    form = HiddenForm()  
+    """Show user profile."""
     user = User.query.get_or_404(user_id)
-
-    return render_template('users/show.html', user=user, form=form)
+    liked_message_ids = set([like.id for like in g.user.liked_messages])
+    return render_template('users/show.html', user=user,liked_message_ids=liked_message_ids )
 
 
 @app.route('/users/<int:user_id>/following')
@@ -177,9 +178,7 @@ def show_following(user_id):
 def users_followers(user_id):
     """Show list of followers of this user."""
 
-    # if user_id != g.user.id:
-    #     flash("Access unauthorized.", "danger")
-    #     return redirect("/")
+ 
 
     user = User.query.get_or_404(user_id)
     return render_template('users/followers.html', user=user)
@@ -214,6 +213,7 @@ def stop_following(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
+
 @app.route('/users/<int:user_id>/likes')
 def users_likes(user_id):
     """Show list of liked messages of this user."""
@@ -223,20 +223,20 @@ def users_likes(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/likes.html', user=user)
+    liked_message_ids = set([like.id for like in g.user.liked_messages])
+    return render_template('users/likes.html', user=user, liked_message_ids=liked_message_ids)
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
     if not g.user:
         flash("Access unauthorized.", "danger")
-        return redirect("/")   
-    
+        return redirect("/")
+
     form = UserEditForm(obj=g.user)
-    
+
     user = g.user
 
     if form.validate_on_submit():
@@ -244,9 +244,9 @@ def profile():
 
         if not User.authenticate(username=user.username, password=password):
             flash("Access unauthorized.", "danger")
-            return render_template("users/edit.html", form=form)  #  render temp to users/user.id/edit
+            # render temp to users/user.id/edit
+            return render_template("users/edit.html", form=form)
 
-        
         user.username = form.username.data
         user.email = form.email.data
         user.image_url = form.image_url.data
@@ -255,16 +255,13 @@ def profile():
         db.session.commit()
 
         return redirect(f"/users/{user.id}")
-    
-    return render_template("users/edit.html", form=form)
 
+    return render_template("users/edit.html", form=form)
 
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
     """Delete user."""
-    #TODO csrf :(
-
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
@@ -327,7 +324,7 @@ def messages_destroy(message_id):
 
 ##############################################################################
 # Like and Unlike messages
-# TODO change redirect to user profile
+
 @app.route('/like/<int:msg_id>', methods=["POST"])
 def like_message(msg_id):
     """Add a liked message to likes or remove a liked message from likes"""
@@ -336,34 +333,29 @@ def like_message(msg_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
     chosen_message = Message.query.get_or_404(msg_id)
 
     if chosen_message.user_id == g.user.id:
         flash("You can't like your own message.", "danger")
-        return redirect("/")
+        return redirect('/')
 
     if form.validate_on_submit():
-        likes_msg_ids = [msg.id for msg in g.user.likes]
+        g.user.liked_messages.append(chosen_message)
+        db.session.commit()
 
-        if msg_id not in likes_msg_ids:
-            g.user.likes.append(chosen_message)
+    return redirect(request.referrer)
 
-
-            # new_like_msg = Likes(user_id=g.user.id,message_id= msg_id)
-            # db.session.add(new_like_msg)
-            db.session.commit()
-
-    return redirect("/")
 
 @app.route('/unlike/<int:msg_id>', methods=["POST"])
 def unlike_message(msg_id):
+    """Unlike message"""
     form = HiddenForm()
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
     chosen_message = Message.query.get_or_404(msg_id)
 
     if chosen_message.user_id == g.user.id:
@@ -371,16 +363,11 @@ def unlike_message(msg_id):
         return redirect("/")
 
     if form.validate_on_submit():
-        #uses relationship!
-        g.user.likes.remove(chosen_message)
+        # uses relationship!
+        g.user.liked_messages.remove(chosen_message)
 
-            #liked_msg = Likes.query.filter(Likes.message_id == msg_id, Likes.user_id == g.user.id).delete()
-            # criteria = {'user_id': g.user.id, 'message_id': msg_id} 
-            # Likes.query.filter_by(**criteria).delete()
-            # db.session.delete(liked_msg)
-
-    db.session.commit() 
-    return redirect("/")
+    db.session.commit()
+    return redirect(request.referrer)
 
 ##############################################################################
 # Homepage and error pages
@@ -396,7 +383,8 @@ def homepage():
 
     if g.user:
         # getting the user_ids of of every one the current user is following
-        following_users_ids = [user.id for user in g.user.following]  # result into a list  []
+        # result into a list  []
+        following_users_ids = [user.id for user in g.user.following]
         following_users_ids.append(g.user.id)     # add g.user.id to that list.
         # TODO add user's msgs
         messages = (Message
@@ -405,10 +393,12 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-        
+
+        liked_message_ids = set([like.id for like in g.user.liked_messages])
+
         form = HiddenForm()
 
-        return render_template('home.html', messages=messages, form=form)
+        return render_template('home.html', messages=messages, form=form, liked_message_ids=liked_message_ids)
 
     else:
         return render_template('home-anon.html')

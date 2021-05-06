@@ -3,7 +3,7 @@
 {% block user_details %}
 <div class="col-lg-6 col-md-8 col-sm-12">
     <ul class="list-group" id="messages">
-        {% for msg in user.likes %}
+        {% for msg in user.liked_messages %}
         <li class="list-group-item">
             <a href="/messages/{{ msg.id }}" class="message-link" />
             <a href="/users/{{ msg.user.id }}">
@@ -13,7 +13,7 @@
                 <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
                 <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
                 <p>{{ msg.text }}</p>
-                <a><i class="fas fa-star"></i></a>
+               {% include 'users/_like_unlike_form.html'%}
             </div>
         </li>
         {% endfor %}

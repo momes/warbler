@@ -88,7 +88,7 @@ class User(db.Model):
         secondaryjoin=(Follows.user_being_followed_id == id)
     )
 
-    likes = db.relationship(
+    liked_messages = db.relationship(
         'Message',
         secondary="likes"
         )
@@ -177,8 +177,7 @@ class Message(db.Model):
 
     user = db.relationship('User')
 
-#QUESTION should this be plural? 
-class Likes(db.Model):
+class Like(db.Model):
     """Connection of a user <-> likes (liked messages)."""
 
     __tablename__ = 'likes'

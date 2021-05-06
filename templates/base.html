@@ -54,7 +54,7 @@
 
 
         <!-- <a href="/logout">Log out</a> -->
-         <li>
+        <li>
           <form action="/logout" method="POST">
             {{ g.hidden_form.hidden_tag() }}
 
@@ -65,12 +65,12 @@
             {{ field(placeholder=field.label.text, class="form-control") }}
             {% endfor %} -->
 
-            <button>logout</button>
+            <button style="padding: 0; border: none; background: none; text-decoration: underline;">logout</button>
           </form>
-          </li>
-          <!--^^^ TO DO will be a form with a hidden WTForm tag 
+        </li>
+        <!--^^^ TO DO will be a form with a hidden WTForm tag 
         put the hidden form on g.hidden_form-->
-          {% endif %}
+        {% endif %}
 
       </ul>
     </div>
