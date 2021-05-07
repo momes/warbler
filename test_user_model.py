@@ -43,7 +43,6 @@ user2 = {
 
 
 
-
 class UserModelTestCase(TestCase):
     """Test views for messages."""
 
@@ -83,8 +82,8 @@ class UserModelTestCase(TestCase):
     def test_user_repr_method(self):
         """ Does the repr method work as expected """
         user = User(**user1)
-        self.user = user
-        res = f"<User #{self.user.id}: testuser1, test1@test.com>"
+        # self.user = user
+        res = f"<User #{user.id}: testuser1, test1@test.com>"
         self.assertEqual(user.__repr__(), res)
 
     def test_user_is_following_True(self):
@@ -140,9 +139,9 @@ class UserModelTestCase(TestCase):
         User.signup(u['username'], u['email'], u['password'], User.image_url.default.arg)
 
         db.session.commit()
-        user_in_db = User.query.filter_by(username='testuser1').first()
-        self.assertEqual(user_in_db.username,u['username'])
-        self.assertEqual(user_in_db.email,u['email'])
+        user_in_db = User.query.filter_by(username='testuser1').one() 
+        self.assertEqual(user_in_db.username, u['username'])
+        self.assertEqual(user_in_db.email, u['email'])
 
     def test_invalid_user_is_not_signed_up(self):
         """
@@ -175,6 +174,48 @@ class UserModelTestCase(TestCase):
                 email='email@email.com',
                 image_url=User.image_url.default.arg
             )
+
+
+    def test_authenticate_valid_user(self):
+        """Does User.signup successfully create a new user given valid credentials"""
+        User.signup(
+            username='test_authenticate',
+            email='test_auth@test_auth.com',
+            password='password', 
+            image_url=User.image_url.default.arg            
+        )
+   
+        user_authenticate = User.authenticate('test_authenticate', 'password')
+        self.assertTrue(user_authenticate)
+        self.assertEqual(user_authenticate.username, 'test_authenticate')
+
+
+    def test_authenticate_invalid_username(self):
+        """Does User.authenticate fail to return a user when the username is invalid """
+        User.signup(
+            username='test_authenticate',
+            email='test_auth@test_auth.com',
+            password='password', 
+            image_url=User.image_url.default.arg            
+        )
+
+        user_authenticate = User.authenticate('Fakeuser', 'password')
+
+        self.assertFalse(user_authenticate)
+  
+
+    def test_authenticate_invalid_password(self):
+        """Does User.authenticate fail to return a user when the username is invalid """
+        User.signup(
+            username='test_authenticate',
+            email='test_auth@test_auth.com',
+            password='password', 
+            image_url=User.image_url.default.arg            
+        )
+
+        user_authenticate = User.authenticate('test_authenticate', 'Fake_password')
+        self.assertFalse(user_authenticate)
+
 
 
 
