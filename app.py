@@ -122,8 +122,6 @@ def login():
 
     return render_template('users/login.html', form=form)
 
-# should be a post so it is not repeatable and because it changes the session on the server
-
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -158,7 +156,7 @@ def list_users():
 def users_show(user_id):
     """Show user profile."""
     user = User.query.get_or_404(user_id)
-    liked_message_ids = set([like.id for like in g.user.liked_messages])
+    liked_message_ids = set([m.id for m in g.user.liked_messages])
     return render_template('users/show.html', user=user,liked_message_ids=liked_message_ids )
 
 
@@ -213,22 +211,6 @@ def stop_following(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
-# TODO organize likes
-@app.route('/users/<int:user_id>/likes')
-def users_likes(user_id):
-    """Show list of liked messages of this user."""
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-    
-    liked_message_ids = set([like.id for like in g.user.likes])
-
-    user = User.query.get_or_404(user_id)
-    # TODO change name in like.id
-    liked_message_ids = set([like.id for like in g.user.liked_messages])  
-    return render_template('users/likes.html', user=user, liked_message_ids=liked_message_ids)
-
 
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
@@ -247,7 +229,6 @@ def profile():
 
         if not User.authenticate(username=user.username, password=password):
             flash("Access unauthorized.", "danger")
-            # render temp to users/user.id/edit
             return render_template("users/edit.html", form=form)
 
         user.username = form.username.data
@@ -327,11 +308,21 @@ def messages_destroy(message_id):
 
 ##############################################################################
 # Like and Unlike messages
+@app.route('/users/<int:user_id>/likes')
+def users_likes(user_id):
+    """Show list of liked messages of this user."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    user = User.query.get_or_404(user_id)
+    liked_message_ids = set([m.id for m in g.user.liked_messages])  
+    return render_template('users/likes.html', user=user, liked_message_ids=liked_message_ids)
 
 @app.route('/like/<int:msg_id>', methods=["POST"])
 def like_message(msg_id):
     """Add a liked message to likes or remove a liked message from likes"""
-    form = HiddenForm()
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -343,18 +334,18 @@ def like_message(msg_id):
         flash("You can't like your own message.", "danger")
         return redirect('/')
 
-    if form.validate_on_submit():
+    if g.hidden_form.validate_on_submit():
         g.user.liked_messages.append(chosen_message)
         db.session.commit()
 
-    return redirect(request.referrer)
+    url = request.referrer or '/'
+    return redirect(url)
 
-# TODO ADD variable for req.ref
+
 @app.route('/unlike/<int:msg_id>', methods=["POST"])
 def unlike_message(msg_id):
     """Unlike message"""
 
-    # form = HiddenForm()
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -370,8 +361,9 @@ def unlike_message(msg_id):
         # uses relationship!
         g.user.liked_messages.remove(chosen_message)
 
+    url = request.referrer or '/'
     db.session.commit()
-    return redirect(request.referrer)
+    return redirect(url)
 
 ##############################################################################
 # Homepage and error pages
@@ -390,7 +382,6 @@ def homepage():
         # result into a list  []
         following_users_ids = [user.id for user in g.user.following]
         following_users_ids.append(g.user.id)     # add g.user.id to that list.
-        # TODO add user's msgs
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following_users_ids))
@@ -398,11 +389,10 @@ def homepage():
                     .limit(100)
                     .all())
 
-        liked_message_ids = set([like.id for like in g.user.liked_messages])
+        liked_message_ids = set([m.id for m in g.user.liked_messages])
 
-        form = HiddenForm()
 
-        return render_template('home.html', messages=messages, form=form, liked_message_ids=liked_message_ids)
+        return render_template('home.html', messages=messages, liked_message_ids=liked_message_ids)
 
     else:
         return render_template('home-anon.html')
