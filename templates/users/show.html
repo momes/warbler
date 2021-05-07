@@ -1,31 +1,30 @@
 {% extends 'users/detail.html' %}
 {% block user_details %}
-<div class="col-sm-6">
-  <ul class="list-group" id="messages">
+  <div class="col-sm-6">
+    <ul class="list-group" id="messages">
 
-    {% for msg in user.messages %}
+      {% for msg in user.messages %}
 
-    <li class="list-group-item">
-      <a href="/messages/{{ msg.id }}" class="message-link" />
+        <li class="list-group-item">
+          <a href="/messages/{{ msg.id }}" class="message-link" />
 
-      <a href="/users/{{ user.id }}">
-        <img src="{{ user.image_url }}" alt="user image" class="timeline-image">
-      </a>
+          <a href="/users/{{ user.id }}">
+            <img src="{{ user.image_url }}" alt="user image" class="timeline-image">
+          </a>
+          <div class="message-area">
+            <a href="/users/{{ user.id }}">@{{ user.username }}</a>
+            <span class="text-muted">
+              {{ msg.timestamp.strftime('%d %B %Y') }}
+            </span>
+            <p>{{ msg.text }}</p>
 
-      <div class="message-area">
-        <a href="/users/{{ user.id }}">@{{ user.username }}</a>
-        <span class="text-muted">
-          {{ msg.timestamp.strftime('%d %B %Y') }}
-        </span>
-        <p>{{ msg.text }}</p>
+          {% include 'users/_like_unlike_form.html'%}
 
-      {% include 'users/_like_unlike_form.html'%}
+          </div>
+        </li>
 
-      </div>
-    </li>
+      {% endfor %}
 
-    {% endfor %}
-
-  </ul>
-</div>
+    </ul>
+  </div>
 {% endblock %}

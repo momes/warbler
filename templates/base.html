@@ -44,32 +44,18 @@
         <li><a href="/signup">Sign up</a></li>
         <li><a href="/login">Log in</a></li>
         {% else %}
-        <li>
-          <a href="/users/{{ g.user.id }}">
-            <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
-          </a>
-        </li>
-        <li><a href="/messages/new">New Message</a></li>
-
-
-
-        <!-- <a href="/logout">Log out</a> -->
-        <li>
-          <form action="/logout" method="POST">
-            {{ g.hidden_form.hidden_tag() }}
-
-            <!-- {% for field in form if field.widget.input_type != 'hidden' %}
-            {% for error in field.errors %}
-            <span class="text-danger">{{ error }}</span>
-            {% endfor %}
-            {{ field(placeholder=field.label.text, class="form-control") }}
-            {% endfor %} -->
-
-            <button style="padding: 0; border: none; background: none; text-decoration: underline;">logout</button>
-          </form>
-        </li>
-        <!--^^^ TO DO will be a form with a hidden WTForm tag 
-        put the hidden form on g.hidden_form-->
+          <li>
+            <a href="/users/{{ g.user.id }}">
+              <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
+            </a>
+          </li>
+          <li><a href="/messages/new">New Message</a></li>
+          <li>
+            <form action="/logout" method="POST">
+              {{ g.hidden_form.hidden_tag() }}
+              <button style="padding: 0; border: none; background: none; text-decoration: underline;">logout</button>
+            </form>
+          </li>
         {% endif %}
 
       </ul>
@@ -79,7 +65,7 @@
   <div class="container">
 
     {% for category, message in get_flashed_messages(with_categories=True) %}
-    <div class="alert alert-{{ category }}">{{ message }}</div>
+      <div class="alert alert-{{ category }}">{{ message }}</div>
     {% endfor %}
 
     {% block content %}

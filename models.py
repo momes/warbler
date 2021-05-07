@@ -9,6 +9,7 @@ bcrypt = Bcrypt()
 db = SQLAlchemy()
 
 
+
 class Follows(db.Model):
     """Connection of a follower <-> followed_user."""
 
@@ -25,6 +26,7 @@ class Follows(db.Model):
         db.ForeignKey('users.id', ondelete="cascade"),
         primary_key=True,
     )
+
 
 
 class User(db.Model):
@@ -71,7 +73,8 @@ class User(db.Model):
         db.Text,
         nullable=False,
     )
-# added cascade on delete all
+
+
     messages = db.relationship('Message',cascade="all,delete", order_by='Message.timestamp.desc()')
 
     followers = db.relationship(
@@ -93,6 +96,7 @@ class User(db.Model):
         secondary="likes"
         )
 
+
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"
 
@@ -107,6 +111,7 @@ class User(db.Model):
 
         found_user_list = [user for user in self.following if user == other_user]
         return len(found_user_list) == 1
+
 
     @classmethod
     def signup(cls, username, email, password, image_url):
@@ -127,6 +132,7 @@ class User(db.Model):
         db.session.add(user)
         return user
 
+
     @classmethod
     def authenticate(cls, username, password):
         """Find user with `username` and `password`.
@@ -146,6 +152,7 @@ class User(db.Model):
                 return user
 
         return False
+
 
 
 class Message(db.Model):
@@ -176,6 +183,8 @@ class Message(db.Model):
     )
 
     user = db.relationship('User')
+
+
 
 class Like(db.Model):
     """Connection of a user <-> likes (liked messages)."""

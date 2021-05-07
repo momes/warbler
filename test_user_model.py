@@ -27,6 +27,20 @@ from app import app
 
 db.create_all()
 
+user1 = {
+            'email':"test1@test.com",
+            'username':"testuser1",
+            'password':"HASHED_PASSWORD"
+        }
+
+user2 = {
+            'email':"test2@test.com",
+            'username':"testuser2",
+            'password':"HASHED_PASSWORD"
+        }
+
+
+
 
 class UserModelTestCase(TestCase):
     """Test views for messages."""
@@ -39,6 +53,13 @@ class UserModelTestCase(TestCase):
         Follows.query.delete()
 
         self.client = app.test_client()
+    
+    def tearDown(self):
+        """Clean up fouled transactions."""
+
+        db.session.rollback() 
+
+    
 
     def test_user_model(self):
         """Does basic model work?"""
@@ -55,3 +76,59 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
+
+
+    def test_user_repr_method(self):
+        """ Does the repr method work as expected """
+        user = User(**user1)
+        self.user = user
+        res = f"<User #{self.user.id}: testuser1, test1@test.com>"
+        self.assertEqual(user.__repr__(), res)
+
+    def test_user_is_following_True(self):
+        """ Does is_following successfully detect when user1 is following user2 """
+        u1 = User(**user1)
+        u2 = User(**user2)
+        db.session.add_all([u1,u2])
+
+        u1.following.append(u2)
+
+        db.session.commit()
+
+        self.assertTrue((u1.is_following(u2)))
+        
+
+    def test_user_is_following_False(self):
+        """ Does is_following successfully detect when user1 is not following user2 """
+        u1 = User(**user1)
+        u2 = User(**user2)
+        db.session.add_all([u1,u2])
+
+        db.session.commit()
+
+        self.assertFalse((u1.is_following(u2)))
+
+
+    def test_user_is_followed_by_True(self):
+        """ Does is_followed_by successfully detect when user1 is followed by user2"""
+        u1 = User(**user1)
+        u2 = User(**user2)
+        db.session.add_all([u1,u2])
+
+        u1.followers.append(u2)
+
+        db.session.commit()
+
+        self.assertTrue((u1.is_followed_by(u2)))
+
+
+    def test_user_is_followed_by_True(self):
+        """ Does is_followed_by successfully detect when user1 is not followed by user2"""
+        u1 = User(**user1)
+        u2 = User(**user2)
+        db.session.add_all([u1,u2])
+
+        db.session.commit()
+
+        self.assertFalse((u1.is_followed_by(u2)))
+

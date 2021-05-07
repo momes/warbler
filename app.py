@@ -29,7 +29,7 @@ connect_db(app)
 
 
 ##############################################################################
-# User signup/login/logout
+# Before request.
 
 
 @app.before_request
@@ -54,6 +54,15 @@ def add_user_to_g():
         g.user = None
 
 
+##############################################################################
+# Helper functions.
+
+def get_liked_message_ids():
+    """Get all msg ids of user liked msgs """
+    liked_message_ids = set([m.id for m in g.user.liked_messages])
+    return liked_message_ids
+
+
 def do_login(user):
     """Log in user."""
 
@@ -66,6 +75,9 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
+
+##############################################################################
+# User signup/login/logout
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -156,8 +168,8 @@ def list_users():
 def users_show(user_id):
     """Show user profile."""
     user = User.query.get_or_404(user_id)
-    liked_message_ids = set([m.id for m in g.user.liked_messages])
-    return render_template('users/show.html', user=user,liked_message_ids=liked_message_ids )
+
+    return render_template('users/likes.html', user=user, liked_message_ids=get_liked_message_ids())
 
 
 @app.route('/users/<int:user_id>/following')
@@ -308,6 +320,7 @@ def messages_destroy(message_id):
 
 ##############################################################################
 # Like and Unlike messages
+
 @app.route('/users/<int:user_id>/likes')
 def users_likes(user_id):
     """Show list of liked messages of this user."""
@@ -317,8 +330,10 @@ def users_likes(user_id):
         return redirect("/")
     
     user = User.query.get_or_404(user_id)
-    liked_message_ids = set([m.id for m in g.user.liked_messages])  
-    return render_template('users/likes.html', user=user, liked_message_ids=liked_message_ids)
+
+  
+    return render_template('users/likes.html', user=user, liked_message_ids=get_liked_message_ids())
+
 
 @app.route('/like/<int:msg_id>', methods=["POST"])
 def like_message(msg_id):
@@ -335,6 +350,7 @@ def like_message(msg_id):
         return redirect('/')
 
     if g.hidden_form.validate_on_submit():
+
         g.user.liked_messages.append(chosen_message)
         db.session.commit()
 
@@ -358,11 +374,12 @@ def unlike_message(msg_id):
         return redirect("/")
 
     if g.hidden_form.validate_on_submit():
-        # uses relationship!
+
         g.user.liked_messages.remove(chosen_message)
+        db.session.commit()
+
 
     url = request.referrer or '/'
-    db.session.commit()
     return redirect(url)
 
 ##############################################################################
@@ -378,10 +395,9 @@ def homepage():
     """
 
     if g.user:
-        # getting the user_ids of of every one the current user is following
-        # result into a list  []
+ 
         following_users_ids = [user.id for user in g.user.following]
-        following_users_ids.append(g.user.id)     # add g.user.id to that list.
+        following_users_ids.append(g.user.id)     
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following_users_ids))
@@ -389,10 +405,8 @@ def homepage():
                     .limit(100)
                     .all())
 
-        liked_message_ids = set([m.id for m in g.user.liked_messages])
+        return render_template('home.html', messages=messages, liked_message_ids=get_liked_message_ids())
 
-
-        return render_template('home.html', messages=messages, liked_message_ids=liked_message_ids)
 
     else:
         return render_template('home-anon.html')
