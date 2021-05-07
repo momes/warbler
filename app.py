@@ -213,7 +213,7 @@ def stop_following(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
-
+# TODO organize likes
 @app.route('/users/<int:user_id>/likes')
 def users_likes(user_id):
     """Show list of liked messages of this user."""
@@ -223,7 +223,8 @@ def users_likes(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    liked_message_ids = set([like.id for like in g.user.liked_messages])
+    # TODO change name in like.id
+    liked_message_ids = set([like.id for like in g.user.liked_messages])  
     return render_template('users/likes.html', user=user, liked_message_ids=liked_message_ids)
 
 
@@ -346,11 +347,12 @@ def like_message(msg_id):
 
     return redirect(request.referrer)
 
-
+# TODO ADD variable for req.ref
 @app.route('/unlike/<int:msg_id>', methods=["POST"])
 def unlike_message(msg_id):
     """Unlike message"""
-    form = HiddenForm()
+
+    # form = HiddenForm()
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -362,7 +364,7 @@ def unlike_message(msg_id):
         flash("You can't like your own message.", "danger")
         return redirect("/")
 
-    if form.validate_on_submit():
+    if g.hidden_form.validate_on_submit():
         # uses relationship!
         g.user.liked_messages.remove(chosen_message)
 
