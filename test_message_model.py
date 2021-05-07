@@ -34,13 +34,11 @@ user1 = {
             'username':"testuser1",
             'password':"HASHED_PASSWORD"
         }
-
 user2 = {
             'email':"test2@test.com",
             'username':"testuser2",
             'password':"HASHED_PASSWORD"
         }
-
 
 
 class MessageModelTestCase(TestCase):
@@ -60,4 +58,48 @@ class MessageModelTestCase(TestCase):
 
         db.session.rollback() 
 
+    def test_msg_repr_method(self):
+        """ Does the repr method work as expected """
+        user = User(**user1)
+        db.session.add(user)
+
+        msg = Message(
+            text="TEST MESSAGE",
+            user_id=user.id)
+        user.messages.append(msg)
+        db.session.commit()
+        res = f"<Message_id: {msg.id}: TEST MESSAGE, user_id: {msg.user_id}>"
+        self.assertEqual(msg.__repr__(), res)
     
+    def test_user_messages_includes_msg(self):
+        """ Does user.messages include the new message """
+
+        user = User(**user1)
+        db.session.add(user)
+
+        msg = Message(
+            text="TEST MESSAGE",
+            user_id=user.id)
+        user.messages.append(msg)
+        db.session.commit()
+
+        self.assertEqual(len(user.messages), 1)
+        self.assertIn(msg, user.messages)
+    
+    def test_user_liked_messages_includes_msg(self):
+        """ Does user.messages include the new message """
+
+        u1 = User(**user1)
+        u2 = User(**user2)
+
+        db.session.add_all([u1,u2])
+
+        msg = Message(
+            text="TEST MESSAGE",
+            user_id=u2.id)
+        u2.messages.append(msg)
+        u1.liked_messages.append(msg)
+        db.session.commit()
+
+        self.assertEqual(len(u1.liked_messages), 1)
+        self.assertIn(msg, u1.liked_messages)

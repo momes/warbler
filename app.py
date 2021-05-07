@@ -345,6 +345,9 @@ def like_message(msg_id):
 
     chosen_message = Message.query.get_or_404(msg_id)
 
+    #TODO refactor the validation of liking a message to prevent
+    # current user from liking their own message
+    # make a method on the msg instance and use try/except ValueError
     if chosen_message.user_id == g.user.id:
         flash("You can't like your own message.", "danger")
         return redirect('/')
@@ -368,7 +371,9 @@ def unlike_message(msg_id):
         return redirect("/")
 
     chosen_message = Message.query.get_or_404(msg_id)
-
+    #TODO refactor the validation of liking a message to prevent
+    # current user from liking their own message
+    # make a method on the msg instance and use try/except ValueError
     if chosen_message.user_id == g.user.id:
         flash("You can't like your own message.", "danger")
         return redirect("/")

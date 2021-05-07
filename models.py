@@ -163,6 +163,7 @@ class Message(db.Model):
     id = db.Column(
         db.Integer,
         primary_key=True,
+        autoincrement=True
     )
 
     text = db.Column(
@@ -184,6 +185,11 @@ class Message(db.Model):
 
     user = db.relationship('User')
 
+    def __repr__(self):
+        return f"<Message_id: {self.id}: {self.text}, user_id: {self.user_id}>"
+
+    def validate_msg_liking_for_user(self, chosen_message):
+        return chosen_message.user_id == g.user.id
 
 
 class Like(db.Model):
