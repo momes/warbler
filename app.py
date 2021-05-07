@@ -221,6 +221,8 @@ def users_likes(user_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
+    
+    liked_message_ids = set([like.id for like in g.user.likes])
 
     user = User.query.get_or_404(user_id)
     # TODO change name in like.id
