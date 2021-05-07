@@ -8,7 +8,9 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, Follows
+from models import db, bcrypt, User, Message, Follows
+from sqlalchemy.exc import IntegrityError
+
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -132,3 +134,50 @@ class UserModelTestCase(TestCase):
 
         self.assertFalse((u1.is_followed_by(u2)))
 
+    def test_valid_user_is_signed_up(self):
+        """Does User.signup successfully create a new user given valid credentials"""
+        u = user1
+        User.signup(u['username'], u['email'], u['password'], User.image_url.default.arg)
+
+        db.session.commit()
+        user_in_db = User.query.filter_by(username='testuser1').first()
+        self.assertEqual(user_in_db.username,u['username'])
+        self.assertEqual(user_in_db.email,u['email'])
+
+    def test_invalid_user_is_not_signed_up(self):
+        """
+        Does User.signup fail to create a new user if any of 
+        the validations 
+        (e.g. uniqueness, non-nullable fields) fail?
+        """
+        u1 = User(**user1)
+        db.session.add(u1)
+        db.session.commit()
+
+        u2 = user2
+
+        #Signup fails when username is already in db
+        User.signup(
+            username=user1['username'], 
+            email=u2['email'], 
+            password=u2['password'], 
+            image_url=User.image_url.default.arg
+        )
+
+        with self.assertRaises(IntegrityError):
+            db.session.commit()
+        
+        #signup fails when missing a non-nullable value
+        with self.assertRaises(ValueError):
+            User.signup(
+                username=user2['username'],
+                password=None, 
+                email='email@email.com',
+                image_url=User.image_url.default.arg
+            )
+
+
+
+
+        
+        
