@@ -48,6 +48,29 @@ body.error-404 {
 .list-group-item {
   margin: 1%;
 }
+
+.home-hero > h1 {
+  font-family: 'Yomogi', cursive;
+  font-size: 5em !important;
+}
+
+.home-hero {
+ color: #031718 !important;
+}
+
+.home-hero > h4{
+  font-size: 2em;
+}
+
+.home-hero > p{
+  font-size: 1.5em;
+}
+
+.home-hero > a {
+  background-color: #D84727 !important;
+  border-color: #D84727 !important;
+}
+
 /* ======================= Nav */
 
 .navbar {
@@ -101,6 +124,10 @@ nav form.navbar-form {
   position: relative;
 }
 
+.navbar-nav > li > a {
+  color: white !important;
+}
+
 #search.form-control {
   border-radius: 20px;
   margin-bottom: 0;
@@ -137,8 +164,8 @@ nav form.navbar-form {
  */
 
 .onboarding > .navbar {
-  background-image: url("/static/images/nav-bg.png");
   background-size: 100% 100%;
+  background-color: #D84727;
 }
 
 .onboarding .navbar-header {
@@ -430,7 +457,7 @@ p.card-bio {
   color: #fff;
   text-align: center;
   padding: 1rem;
-  text-shadow: 0 0 8px #66757f;
+  text-shadow: 0 0 8px #ffffffd3;
 }
 
 .home-hero .btn {
