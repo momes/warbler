@@ -170,7 +170,7 @@ def users_show(user_id):
     """Show user profile."""
     user = User.query.get_or_404(user_id)
 
-    return render_template('users/likes.html', user=user, liked_message_ids=get_liked_message_ids())
+    return render_template('users/show.html', user=user, liked_message_ids=get_liked_message_ids())
 
 
 @app.route('/users/<int:user_id>/following')
@@ -182,17 +182,15 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user)
+    return render_template('users/following.html', user=user, liked_message_ids=get_liked_message_ids())
 
 
 @app.route('/users/<int:user_id>/followers')
 def users_followers(user_id):
     """Show list of followers of this user."""
 
- 
-
     user = User.query.get_or_404(user_id)
-    return render_template('users/followers.html', user=user)
+    return render_template('users/followers.html', user=user, liked_message_ids=get_liked_message_ids())
 
 
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
@@ -410,7 +408,7 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-
+        
         return render_template('home.html', messages=messages, liked_message_ids=get_liked_message_ids())
 
 

@@ -44,10 +44,9 @@
 
   <div class="col-lg-6 col-md-8 col-sm-12">
     <ul class="list-group" id="messages">
-
       {% for msg in messages %}
-        <li class="list-group-item">
-          <a href="/messages/{{ msg.id }}" class="message-link">
+      <li class="list-group-item">
+        <a href="/messages/{{ msg.id }}" class="message-link">
           <a href="/users/{{ msg.user.id }}">
             <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
           </a>
@@ -57,9 +56,15 @@
             <p>{{ msg.text }}</p>
             {% include 'users/_like_unlike_form.html'%}
           </div>
-        </li>
+      </li>
       {% endfor %}
     </ul>
+    {% if not messages %}
+    <div class="no-warbles">
+      <h2><span><img height="50" width="50" src="static/images/warbler-logo.png"></span>  There are no recent Warbles.</h2>
+      <p>Start <a href="/users">following fellow Warblers</a> to see what everyone's saying.</p>
+    </div>
+    {% endif %}
   </div>
 
 </div>

@@ -1,11 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Yomogi&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=B612+Mono&display=swap');
+
 /* ====================== General */
 
 body {
-  background-color: #e6ecf0;
+  background-color: #fadda8;
+  font-family: 'B612 Mono', monospace;
 }
 
+
 body.error-404 {
-  background-color: #1da1f2;
+  background-color: #5EB1BF;
 }
 
 .form-control {
@@ -14,12 +19,35 @@ body.error-404 {
 
 .btn {
   border-radius: 50px;
+  margin: 5px;
 }
 
 .btn:hover {
   cursor: pointer;
 }
 
+.user-row {
+  background-color: #b3dce4 !important;
+}
+
+.no-warbles {
+  margin: 10% auto;
+  color: #042A2B;
+}
+
+.no-warbles > h2 {
+  color: #042A2B;
+}
+
+.card {
+  border-radius: 15px !important;
+  overflow: hidden;
+}
+
+
+.list-group-item {
+  margin: 1%;
+}
 /* ======================= Nav */
 
 .navbar {
@@ -547,4 +575,26 @@ p.card-bio {
 
 .message-404 .form-inline input {
   flex: 1;
+}
+
+
+/* ================================ Navbar */
+.navbar {
+  background-color: #D84727;
+  height: 10vh !important;
+}
+
+.navbar-brand {
+  font-family: 'Yomogi', cursive;
+  font-size: 3em !important;
+  color: white !important;
+}
+
+.logo {
+  height: 8vh;
+  width: 100px;
+  background-image: url('../images/warbler-logo.png');
+  background-position: center;
+  background-size: 80%;
+  background-repeat: no-repeat;
 }

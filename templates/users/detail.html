@@ -6,9 +6,9 @@
 <img src="{{ user.image_url }}" alt="Image for {{ user.username }}" id="profile-avatar">
 <div class="row full-width">
   <div class="container">
-    <div class="row justify-content-end">
+    <div class="row justify-content-end user-row">
       <div class="col-9">
-        <ul class="user-stats nav nav-pills">
+        <ul class="user-stats nav nav-pills user-row">
           <li class="stat">
             <p class="small">Messages</p>
             <h4>
@@ -67,7 +67,6 @@
 
   {% block user_details %}
   {% endblock %}
-
 </div>
 
 {% endblock %}

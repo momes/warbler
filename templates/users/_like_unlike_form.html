@@ -1,6 +1,6 @@
 
 {% if msg.user_id != g.user.id %}
-    {% if msg.id not in liked_message_ids%}
+    {% if msg.id not in liked_message_ids %}
     <form method="POST" action="/like/{{ msg.id }}">
         {{ g.hidden_form.hidden_tag() }}
         <button type="submit" class="far fa-star"
