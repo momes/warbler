@@ -103,7 +103,6 @@ def signup():
                 image_url=form.image_url.data or User.image_url.default.arg,
             )
             db.session.commit()
-            breakpoint()
 
         except IntegrityError:
             flash("Username already taken", 'danger')
